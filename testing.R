@@ -1,0 +1,141 @@
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(choroplethrMaps)
+library(choroplethr)
+library(ggmap)
+library(maps)
+
+
+#匯入境外生來台資料(國別)(第一題)
+Data103<- read_csv("C:/Users/hh770/Downloads/25f64d5125016dcd6aed42e50c972ed0_export.csv")
+Data104<- read_csv("C:/Users/hh770/Downloads/104_ab104_C.csv")
+Data105<- read_csv("C:/Users/hh770/Downloads/105_ab105_C.csv")
+Data106<- read_csv("C:/Users/hh770/Downloads/106_ab105_C.csv")
+
+#匯入境外生來台資料(校別)(第一題)
+Data103a<-read_csv("C:/Users/hh770/Downloads/103_ab103_S.csv")
+Data104a<-read_csv("C:/Users/hh770/Downloads/104_ab104_S.csv")
+Data105a<-read_csv("C:/Users/hh770/Downloads/105_ab105_S.csv")
+Data106a<-read_csv("C:/Users/hh770/Downloads/106_ab105_S.csv")
+
+#匯入大專校院本國學生出國進修交流數(第四題)
+Student_RPT<- read.csv("C:/Users/hh770/Downloads/Student_RPT_07 .csv")
+
+#匯入世界各主要國家之我國留學生人數統計表(第七題)
+StudyAbord105<- read_csv("C:/Users/hh770/Downloads/105abc .csv")
+StudyAbord105<-StudyAbord105[,-c(4,5,6)]
+#(第一題第一小題)哪些國家來台灣唸書的學生最多呢？請取出前十名的國家與總人數，由大到小排序
+#加總各國境外生總人數(第一題)
+Data103$ForeignStudentSum103<-0
+FSSum103<-for (n in 1:149) {
+  Data103[n,12]<-sum(Data103[n,3:11])
+}
+Data104$ForeignStudentSum104<-0
+FSSum104<-for (n in 1:159) {
+  Data104[n,12]<-sum(Data104[n,3:11])
+}
+Data105$ForeignStudentSum105<-0
+FSSum105<-for (n in 1:165) {
+  Data105[n,12]<-sum(Data105[n,3:11])
+}
+Data106$ForeignStudentSum106<-0
+FSSum106<-for (n in 1:167) {
+  Data106[n,12]<-sum(Data106[n,3:11])
+}
+#以國家為基準結合四個年度的境外生人數(第一題)
+CountryBaseSum103<-Data103[,c("國別","ForeignStudentSum103")]
+CountryBaseSum104<-Data104[,c("國別","ForeignStudentSum104")]
+CountryBaseSum105<-Data105[,c("國別","ForeignStudentSum105")]
+CountryBaseSum106<-Data106[,c("國別","ForeignStudentSum106")]
+CountryBaseSum<-merge(CountryBaseSum103,CountryBaseSum104,by="國別",all=T)
+CountryBaseSum<-merge(CountryBaseSum,CountryBaseSum105,by="國別",all=T)  
+CountryBaseSum<-merge(CountryBaseSum,CountryBaseSum106,by="國別",all=T)
+CountryBaseSum$CountrySum<-0
+for (n in 1:177) {
+  CountryBaseSum[n,6]<-sum(CountryBaseSum[n,2:5],na.rm = T)#加總四個年度資料
+}
+
+head(arrange(CountryBaseSum,desc(CountrySum)),10)
+knitr::kable(head(arrange(CountryBaseSum,desc(CountrySum)),10))
+
+
+#(第一題第二小題)又哪間大學的境外生最多呢？請取出前十名的大學與總人數，由大到小排序
+#加總各校境外生總人數(第一題)
+Data103a$`非學位生-大陸研修生`<-gsub("…",NA,Data103a$`非學位生-大陸研修生`)
+Data104a$`非學位生-大陸研修生`<-gsub("…",NA,Data104a$`非學位生-大陸研修生`)
+Data103a$SchoolForeignStudentSum103<-0
+for (n in 1:153) {
+  Data103a[n,13]<-sum(Data103a[n,4:9],na.rm = T)
+}
+Data104a$SchoolForeignStudentSum104<-0
+Data104a$`非學位生-大陸研修生`<-as.numeric(Data104a$`非學位生-大陸研修生`)
+for (n in 1:154) {
+  Data104a[n,13]<-sum(Data104a[n,4:10],na.rm = T)
+}
+Data105a$SchoolForeignStudentSum105<-0
+for (n in 1:154) {
+  Data105a[n,13]<-sum(Data105a[n,4:10],na.rm = T)
+} 
+Data106a$SchoolForeignStudentSum106<-0
+for (n in 1:154) {
+  Data106a[n,13]<-sum(Data106a[n,4:10],na.rm = T)
+}
+
+#以學校為基準結合四個年度的境外生人數(第一題)
+SchoolBaseSum103<-Data103a[,c("學校名稱","SchoolForeignStudentSum103")]
+SchoolBaseSum104<-Data104a[,c("學校名稱","SchoolForeignStudentSum104")]
+SchoolBaseSum105<-Data105a[,c("學校名稱","SchoolForeignStudentSum105")]
+SchoolBaseSum106<-Data106a[,c("學校名稱","SchoolForeignStudentSum106")]
+SchoolBaseSum<-merge(SchoolBaseSum103,SchoolBaseSum104,by="學校名稱",all=T)
+SchoolBaseSum<-merge(SchoolBaseSum,SchoolBaseSum105,by="學校名稱",all=T)
+SchoolBaseSum<-merge(SchoolBaseSum,SchoolBaseSum106,by="學校名稱",all=T)
+SchoolBaseSum$SchoolSum<-0
+for(n in 1:177){
+  SchoolBaseSum[n,6]<-sum(SchoolBaseSum[n,2:5],na.rm = T)#加總四個年度資料
+}
+
+head(arrange(SchoolBaseSum,desc(SchoolSum)),10)
+knitr::kable(head(arrange(SchoolBaseSum,desc(SchoolSum)),10))
+
+#(第二題)用bar chart呈現各個國家(全部)來台灣唸書的學生人數
+ggplot(CountryBaseSum,
+       aes(x=國別,y=CountrySum))+
+  geom_bar(stat = "identity")+
+  labs(x="國家",y="總計",title="各個國家來台灣念書的學生人數")+
+  theme(axis.text.x = element_text(size = 6,angle = 90))+
+  theme(panel.border = element_blank())
+#(第三題)用面量圖呈現各個國家來台灣唸書的學生人數，人數越多顏色越深
+#map("world")
+mymap<-get_googlemap(center  = c(lon=121.50,lat=25.06), 
+               zoom = 5,
+        language = "zh-TW")
+ggmap(mymap)
+
+world_map <- map_data("world")
+world_map
+data(CountryBaseSum)
+state_choropleth(CountryBaseSum) 
+?get_map
+get_map("World")
+map("World")
+?map
+map("world", fill = TRUE, col = rainbow(100),
+    ylim = c(-60, 90), mar = c(0, 0, 0, 0))
+title("世界地图")
+#(第四題第一小題)大專院校的學生最喜歡去哪些國家交流？請取出前十名的國家與總人數，由大到小排序
+PRTCountrySum<-group_by(Student_RPT,對方學校.機構.國別.地區.)%>%
+  summarise(countrycount=sum(小計))
+head(arrange(PRTCountrySum,desc(countrycount)),10)
+knitr::kable(head(arrange(PRTCountrySum,desc(countrycount)),10))
+#(第四題第二小題)哪間大學的出國交流學生數最多呢？請取出前十名的大學與總人數，由大到小排序
+PRTSchoolSum<-group_by(Student_RPT,學校名稱)%>%
+  summarise(schoolcount=sum(小計))
+head(arrange(PRTSchoolSum,desc(schoolcount)),10)
+knitr::kable(head(arrange(PRTSchoolSum,desc(schoolcount)),10))
+#(第七題)台灣學生最喜歡去哪些國家留學呢？請取出前十名的國家與總人數，由大到小排序
+head(arrange(StudyAbord105,desc(總人數)),10)
+knitr::kable(head(arrange(StudyAbord105,desc(總人數)),10))
+#(第八題)請用面量圖呈現台灣學生去各國家留學人數，人數越多顏色越深
+#(第九題)請問來台讀書與離台讀書的來源國與留學國趨勢是否相同(5分)？
+#想來台灣唸書的境外生，他們的母國也有很多台籍生嗎？請圖文並茂說明你的觀察(10分)。
