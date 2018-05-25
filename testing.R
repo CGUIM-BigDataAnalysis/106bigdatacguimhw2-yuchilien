@@ -110,35 +110,15 @@ ggplot(CountryBaseSum,
   theme(axis.text.x = element_text(size = 6,angle = 90))+
   theme(panel.border = element_blank())
 #(第三題)用面量圖呈現各個國家來台灣唸書的學生人數，人數越多顏色越深
-map("world")
-mymap<-get_googlemap(center  = c(lon=121.50,lat=25.06), 
-               zoom = 5,
-        language = "zh-TW")
-ggmap(mymap)
-
-world_map <- map_data("world")
-world_map
-data(CountryBaseSum)
-state_choropleth(CountryBaseSum) 
-?get_map
-get_map("World")
-map("World")
-?map
-map("world", fill = TRUE, col = rainbow(100),
-    ylim = c(-60, 90), mar = c(0, 0, 0, 0))
-title("世界")
-data(country.names)
-
-df = data.frame(region=country.names, value=sample(1:length(country.names)))
-
-choroplethr(df, lod="world")
 #把國家名字換成英文
 CountryName<-fromJSON("C:/Users/hh770/Downloads/countries.json")
+CountryBaseSum$country<-""
+
 for (n in 1:177) {
   for (m in 1:250) {
-     if(CountryBaseSum[n,1]==CountryName$Taiwan[m])
-   CountryBaseSum[n,7]<-CountryName$ISO3[m]
-   }
+    if(CountryBaseSum[n,1]==CountryName$Taiwan[m])
+      CountryBaseSum[n,7]<-CountryName$ISO3[m]
+  }
 }
 #手動輸入
 CountryBaseSum[5,7]<-"CHN"
@@ -205,18 +185,133 @@ ggplot(PRTSchoolSum,
   labs(x="學校名稱",y="總計",title="台灣大專院校的學生去各國家進修交流人數")+
   theme(axis.text.x = element_text(size = 6,angle = 90))+
   theme(panel.border = element_blank())
-#(第六題)請用面量圖呈現台灣大專院校的學生去各國家進修交流人數，人數越多顏色越深(畫台灣)
-tw_new <- readShapeSpatial("C:/Users/hh770/Downloads/mapdata201804300222/Town_MOI_1070330.shp") 
-head(tw_new$Town_ID)
-tw_new.df <- 
-  fortify(tw_new, region = "COUNTYNAME") 
-head(tw_new.df,10)
+#(第六題)請用面量圖呈現台灣大專院校的學生去各國家進修交流人數，人數越多顏色越深
+#把中文國家名字改成英文
+PRTCountrySum$country<-""
+for (n in 2:149) {
+  for (m in 1:250) {
+    if(PRTCountrySum[n,1]==CountryName$Taiwan[m])
+      PRTCountrySum[n,3]<-CountryName$ISO3[m]
+  }
+}
+#手動輸入
+PRTCountrySum[3,3]<-"TUR"
+PRTCountrySum[4,3]<-"CHN"
+PRTCountrySum[5,3]<-"KOR"
+PRTCountrySum[6,3]<-"CHN"
+PRTCountrySum[8,3]<-"DNK"
+PRTCountrySum[10,3]<-"ECU"
+PRTCountrySum[12,3]<-"BRA"
+PRTCountrySum[14,3]<-"PAN"
+PRTCountrySum[17,3]<-"BEL"
+PRTCountrySum[24,3]<-"SWZ"
+PRTCountrySum[27,3]<-"GMB"
+PRTCountrySum[28,3]<-"BRL"
+PRTCountrySum[30,3]<-"LTU"
+PRTCountrySum[31,3]<-"IRN"
+PRTCountrySum[33,3]<-"ISL"
+PRTCountrySum[35,3]<-"LIE"
+PRTCountrySum[37,3]<-"HUN"
+PRTCountrySum[38,3]<-"IDN"
+PRTCountrySum[40,3]<-"IDN"
+PRTCountrySum[41,3]<-"IND"
+PRTCountrySum[43,3]<-"ESP"
+PRTCountrySum[c(44,45),3]<-"HRV"
+PRTCountrySum[47,3]<-"GRC"
+PRTCountrySum[49,3]<-"BRN"
+PRTCountrySum[51,3]<-"SAU"
+PRTCountrySum[55,3]<-"PLW"
+PRTCountrySum[57,3]<-"LVA"
+PRTCountrySum[60,3]<-"POL"
+PRTCountrySum[62,3]<-"FIN"
+PRTCountrySum[64,3]<-"OMN"
+PRTCountrySum[65,3]<-"IRN"
+PRTCountrySum[67,3]<-"RUS"
+PRTCountrySum[69,3]<-"ZAF"
+PRTCountrySum[70,3]<-"KOR"
+PRTCountrySum[72,3]<-"KHM"
+PRTCountrySum[74,3]<-"KOS"
+PRTCountrySum[76,3]<-"TUN"
+PRTCountrySum[78,3]<-"JOR"
+PRTCountrySum[84,3]<-"CRI"
+PRTCountrySum[86,3]<-"EGY"
+PRTCountrySum[88,3]<-"NOR"
+PRTCountrySum[90,3]<-"THA"
+PRTCountrySum[94,3]<-"SLB"
+PRTCountrySum[97,3]<-"MLT"
+PRTCountrySum[99,3]<-"CZE"
+PRTCountrySum[101,3]<-"NLD"
+PRTCountrySum[102,3]<-"MOZ"
+PRTCountrySum[104,3]<-"FJI"
+PRTCountrySum[106,3]<-"LKA"
+PRTCountrySum[108,3]<-"SVK"
+PRTCountrySum[110,3]<-"SVN"
+PRTCountrySum[113,3]<-"PHL"
+PRTCountrySum[115,3]<-"VNV"
+PRTCountrySum[116,3]<-"SYC"
+PRTCountrySum[117,3]<-"SRB"
+PRTCountrySum[119,3]<-"AUT"
+PRTCountrySum[121,3]<-"EST"
+PRTCountrySum[123,3]<-"IRL"
+PRTCountrySum[c(124,125),3]<-"SGP"
+PRTCountrySum[128,3]<-"SWE"
+PRTCountrySum[130,3]<-"ITA"
+PRTCountrySum[132,3]<-"STP"
+PRTCountrySum[134,3]<-"PRT"
+PRTCountrySum[136,3]<-"MNG"
+PRTCountrySum[138,3]<-"MEX"
+PRTCountrySum[140,3]<-"DEU"
+PRTCountrySum[142,3]<-"MAR"
+PRTCountrySum[144,3]<-"MUS"
+PRTCountrySum[145,3]<-"MMR"
+PRTCountrySum[146,3]<-"AUS"
+PRTCountrySum[148,3]<-"LUX"
+#用ptrcountrysum
+plot_ly(PRTCountrySum, 
+        z=~countrycount, 
+        text=~country, 
+        locations=~country, 
+        type= 'choropleth',
+        color=~countrycount, 
+        colors='Greens', 
+        marker = list(line = l)) %>%
+  layout(title='台灣大專院校的學生去各國家進修交流人數', geo=g)
 #(第七題)台灣學生最喜歡去哪些國家留學呢？請取出前十名的國家與總人數，由大到小排序
 head(arrange(StudyAbord105,desc(總人數)),10)
 knitr::kable(head(arrange(StudyAbord105,desc(總人數)),10))
 #(第八題)請用面量圖呈現台灣學生去各國家留學人數，人數越多顏色越深(畫世界)
+#改國家名字
+StudyAbord105$country<-""
+for (n in 1:29) {
+  for (m in 1:250) {
+    if(StudyAbord105[n,2]==CountryName$Taiwan[m])
+      StudyAbord105[n,4]<-CountryName$ISO3[m]
+  }
+}
+#手動輸入
+StudyAbord105[15,4]<-"AUS"
+StudyAbord105[18,4]<-"KOR"
+StudyAbord105[20,4]<-"SGP"
 
+plot_ly(StudyAbord105, 
+        z=~'總人數', 
+        text=~country, 
+        locations=~country, 
+        type= 'choropleth',
+        color=~'總人數', 
+        colors='Greens', 
+        marker = list(line = l)) %>%
+  layout(title='台灣學生去各國家留學人數', geo=g)
 
 #(第九題)請問來台讀書與離台讀書的來源國與留學國趨勢是否相同(5分)？
+StudyAbord105#(OUT)
+CountryBaseSum#(IN)
 
+StudyTrend<-merge(StudyAbord105,CountryBaseSum,by="國別",all=TRUE)
+
+ggplot(StudyTrend, aes(x = 國別)) +
+  geom_line(aes(y = 總人數)) +
+  geom_line(aes(y = CountrySum))+
+  theme(axis.text.x = element_text(size = 6,angle = 90))+
+  theme(panel.border = element_blank())
 #想來台灣唸書的境外生，他們的母國也有很多台籍生嗎？請圖文並茂說明你的觀察(10分)。
