@@ -5,8 +5,12 @@ library(choroplethrMaps)
 library(choroplethr)
 library(ggmap)
 library(maps)
-
-
+library(rgdal)
+library(rgeos) 
+library(maptools)
+library(plotly)
+library(knitr)
+library(jsonlite)
 #匯入境外生來台資料(國別)(第一題)
 Data103<- read_csv("C:/Users/hh770/Downloads/25f64d5125016dcd6aed42e50c972ed0_export.csv")
 Data104<- read_csv("C:/Users/hh770/Downloads/104_ab104_C.csv")
@@ -28,19 +32,19 @@ StudyAbord105<-StudyAbord105[,-c(4,5,6)]
 #(第一題第一小題)哪些國家來台灣唸書的學生最多呢？請取出前十名的國家與總人數，由大到小排序
 #加總各國境外生總人數(第一題)
 Data103$ForeignStudentSum103<-0
-FSSum103<-for (n in 1:149) {
+for (n in 1:149) {
   Data103[n,12]<-sum(Data103[n,3:11])
 }
 Data104$ForeignStudentSum104<-0
-FSSum104<-for (n in 1:159) {
+for (n in 1:159) {
   Data104[n,12]<-sum(Data104[n,3:11])
 }
 Data105$ForeignStudentSum105<-0
-FSSum105<-for (n in 1:165) {
+for (n in 1:165) {
   Data105[n,12]<-sum(Data105[n,3:11])
 }
 Data106$ForeignStudentSum106<-0
-FSSum106<-for (n in 1:167) {
+for (n in 1:167) {
   Data106[n,12]<-sum(Data106[n,3:11])
 }
 #以國家為基準結合四個年度的境外生人數(第一題)
@@ -106,7 +110,7 @@ ggplot(CountryBaseSum,
   theme(axis.text.x = element_text(size = 6,angle = 90))+
   theme(panel.border = element_blank())
 #(第三題)用面量圖呈現各個國家來台灣唸書的學生人數，人數越多顏色越深
-#map("world")
+map("world")
 mymap<-get_googlemap(center  = c(lon=121.50,lat=25.06), 
                zoom = 5,
         language = "zh-TW")
@@ -122,7 +126,68 @@ map("World")
 ?map
 map("world", fill = TRUE, col = rainbow(100),
     ylim = c(-60, 90), mar = c(0, 0, 0, 0))
-title("世界地图")
+title("世界")
+data(country.names)
+
+df = data.frame(region=country.names, value=sample(1:length(country.names)))
+
+choroplethr(df, lod="world")
+#把國家名字換成英文
+CountryName<-fromJSON("C:/Users/hh770/Downloads/countries.json")
+for (n in 1:177) {
+  for (m in 1:250) {
+     if(CountryBaseSum[n,1]==CountryName$Taiwan[m])
+   CountryBaseSum[n,7]<-CountryName$ISO3[m]
+   }
+}
+#手動輸入
+CountryBaseSum[5,7]<-"CHN"
+CountryBaseSum[8,7]<-"PNG"
+CountryBaseSum[42,7]<-"TUV"
+CountryBaseSum[48,7]<-"HRV"
+CountryBaseSum[50,7]<-"HND"
+CountryBaseSum[67,7]<-"BIH"
+CountryBaseSum[72,7]<-"SAU"
+CountryBaseSum[80,7]<-"KOR"
+CountryBaseSum[81,7]<-"SSD"
+CountryBaseSum[87,7]<-"KOS"
+CountryBaseSum[96,7]<-"COD"
+CountryBaseSum[108,7]<-"NAM"
+CountryBaseSum[112,7]<-"SLB"
+CountryBaseSum[117,7]<-"MHL"
+CountryBaseSum[119,7]<-"MLT"
+CountryBaseSum[120,7]<-"FSM"
+CountryBaseSum[139,7]<-"SRB"
+CountryBaseSum[143,7]<-"SGP"
+CountryBaseSum[144,7]<-"SLE"
+CountryBaseSum[148,7]<-"VCT"
+CountryBaseSum[150,7]<-"KNA"
+CountryBaseSum[153,7]<-"COM"
+CountryBaseSum[167,7]<-"AUS"
+CountryBaseSum[173,7]<-"CYP"
+
+l <- list(color = toRGB("grey"), width = 0.8)
+g <- list(
+  showframe=FALSE,
+  showcountries=TRUE,
+  showcoastlines=TRUE,
+  coastlinecolor=toRGB("grey"),
+  countrycolor=toRGB("grey"))
+
+
+
+plot_ly(CountryBaseSum, 
+        z=~CountrySum, 
+        text=~country, 
+        locations=~country, 
+        type= 'choropleth',
+        color=~CountrySum, 
+        colors='Greens', 
+        marker = list(line = l)) %>%
+  layout(title='各個國家來台灣唸書的學生人數', geo=g)
+
+
+
 #(第四題第一小題)大專院校的學生最喜歡去哪些國家交流？請取出前十名的國家與總人數，由大到小排序
 PRTCountrySum<-group_by(Student_RPT,對方學校.機構.國別.地區.)%>%
   summarise(countrycount=sum(小計))
@@ -133,9 +198,25 @@ PRTSchoolSum<-group_by(Student_RPT,學校名稱)%>%
   summarise(schoolcount=sum(小計))
 head(arrange(PRTSchoolSum,desc(schoolcount)),10)
 knitr::kable(head(arrange(PRTSchoolSum,desc(schoolcount)),10))
+#(第五題)請用bar chart呈現台灣大專院校(全部)的學生去各國家進修交流人數
+ggplot(PRTSchoolSum,
+       aes(x=學校名稱,y=schoolcount))+
+  geom_bar(stat = "identity")+
+  labs(x="學校名稱",y="總計",title="台灣大專院校的學生去各國家進修交流人數")+
+  theme(axis.text.x = element_text(size = 6,angle = 90))+
+  theme(panel.border = element_blank())
+#(第六題)請用面量圖呈現台灣大專院校的學生去各國家進修交流人數，人數越多顏色越深(畫台灣)
+tw_new <- readShapeSpatial("C:/Users/hh770/Downloads/mapdata201804300222/Town_MOI_1070330.shp") 
+head(tw_new$Town_ID)
+tw_new.df <- 
+  fortify(tw_new, region = "COUNTYNAME") 
+head(tw_new.df,10)
 #(第七題)台灣學生最喜歡去哪些國家留學呢？請取出前十名的國家與總人數，由大到小排序
 head(arrange(StudyAbord105,desc(總人數)),10)
 knitr::kable(head(arrange(StudyAbord105,desc(總人數)),10))
-#(第八題)請用面量圖呈現台灣學生去各國家留學人數，人數越多顏色越深
+#(第八題)請用面量圖呈現台灣學生去各國家留學人數，人數越多顏色越深(畫世界)
+
+
 #(第九題)請問來台讀書與離台讀書的來源國與留學國趨勢是否相同(5分)？
+
 #想來台灣唸書的境外生，他們的母國也有很多台籍生嗎？請圖文並茂說明你的觀察(10分)。
